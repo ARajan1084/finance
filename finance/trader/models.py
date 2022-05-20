@@ -4,10 +4,10 @@ from django.db import models
 class DailyStockMarketData(models.Model):
     ticker = models.CharField(unique=False, max_length=5, primary_key=False)
     date = models.DateField(unique=False)
-    open = models.FloatField()
-    close = models.FloatField()
-    adj_close = models.FloatField()
-    volume = models.FloatField()
+    open = models.FloatField(null=True)
+    close = models.FloatField(null=True)
+    adj_close = models.FloatField(null=True)
+    volume = models.FloatField(null=True)
 
     class Meta:
         db_table = 'daily_stock_market_data'
@@ -17,10 +17,10 @@ class DailyStockMarketData(models.Model):
 class StockMarketData(models.Model):
     ticker = models.CharField(unique=False, max_length=5, primary_key=False)
     date_time = models.DateTimeField(unique=False)
-    open = models.FloatField()
-    close = models.FloatField()
-    adj_close = models.FloatField()
-    volume = models.FloatField()
+    open = models.FloatField(null=True)
+    close = models.FloatField(null=True)
+    adj_close = models.FloatField(null=True)
+    volume = models.FloatField(null=True)
 
     class Meta:
         db_table = 'stock_market_data'
