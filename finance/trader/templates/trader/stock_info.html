@@ -1,0 +1,25 @@
+{% extends 'trader/base.html' %}
+{% load static %}
+
+{% block body %}
+    <div class="container pt-5">
+        <h1>{{ ticker_info.ticker }}</h1>
+        <h5>{{ ticker_info.security }}</h5>
+        <div class="d-flex justify-content-center">
+            <div class="col-8 justify-content-between">
+                <button class="btn btn-outline-primary">1 Day</button>
+                <button class="btn btn-outline-primary">7 Days</button>
+                <button class="btn btn-outline-primary">1 Month</button>
+                <button class="btn btn-outline-primary">1 Year</button>
+                <button class="btn btn-outline-primary">10 Years</button>
+            </div>
+        </div>
+        <div id="example"></div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+
+    </script>
+{% endblock %}
