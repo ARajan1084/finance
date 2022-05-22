@@ -1,4 +1,4 @@
-{% extends 'trader/base.html' %}
+{% extends 'home/base.html' %}
 {% load static %}
 
 {% block body %}
@@ -6,20 +6,60 @@
         <h1>{{ ticker_info.ticker }}</h1>
         <h5>{{ ticker_info.security }}</h5>
         <div class="d-flex justify-content-center">
-            <div class="col-8 justify-content-between">
-                <button class="btn btn-outline-primary">1 Day</button>
-                <button class="btn btn-outline-primary">7 Days</button>
-                <button class="btn btn-outline-primary">1 Month</button>
-                <button class="btn btn-outline-primary">1 Year</button>
-                <button class="btn btn-outline-primary">10 Years</button>
-            </div>
+            <button class="btn btn-outline-primary m-1">1 Day</button>
+            <button class="btn btn-outline-primary m-1">7 Days</button>
+            <button class="btn btn-outline-primary m-1">1 Month</button>
+            <button class="btn btn-outline-primary m-1">1 Year</button>
+            <button class="btn btn-outline-primary m-1">10 Years</button>
         </div>
+        <div class="row"></div>
+        <canvas id="myChart" width="400" height="200" class="pt-4"></canvas>
         <div id="example"></div>
     </div>
 {% endblock %}
 
 {% block script %}
     <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
 
+        // #DCEDFF
+        // #2D3319
+        // #1C6E8C
+        // #F0A7A0
+        // #FFDA22
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ time_x|safe }},
+                datasets: [
+                    {
+                        data: {{ stock_price_y }},
+                        label: "Close",
+                        borderColor: "#1C6E8C",
+                        backgroundColor: "#1C6E8C",
+                        fill: false
+                    },
+                    {
+                        data: {{ bollinger_hband }},
+                        label: "BBand H",
+                        borderColor: "#DCEDFF",
+                        backgroundColor: "#DCEDFF",
+                        fill: false
+                    },
+                    {
+                        data: {{ bollinger_lband }},
+                        label: "BBand L",
+                        borderColor: "#DCEDFF",
+                        backgroundColor: "#DCEDFF",
+                        fill: false
+                    }]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: 'World population per region (in millions)'
+                },
+            }
+        });
     </script>
 {% endblock %}

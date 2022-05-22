@@ -11,7 +11,6 @@ class DailyStockMarketData(models.Model):
 
     class Meta:
         db_table = 'daily_stock_market_data'
-        order_with_respect_to = 'date'
 
 
 class StockMarketData(models.Model):

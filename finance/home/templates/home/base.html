@@ -1,0 +1,53 @@
+{% load static %}
+{% load widget_tweaks %}
+
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="{% static 'finance/bootstrap-4/css/bootstrap.min.css' %}">
+        <link rel="stylesheet" href="{% static 'finance/fontawesome-free-5.13.0-web/css/fontawesome.css' %}">
+        <title>{% block title %}{% endblock %}</title>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggler"
+                    aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand" href="#">Finance</a>
+
+            <div class="collapse navbar-collapse" id="navbarToggler">
+                <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                    <li class="nav-item {% if active == 'home' %}active{% endif %}">
+                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active == 'trader' %}active{% endif %}" href="{% url 'trader_home' %}">Trader</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#">Disabled</a>
+                    </li>
+                </ul>
+                <form class="form-inline my-2 my-lg-0" action="{% url 'trader_home' %}" method="POST">
+                    {% csrf_token %}
+{#                    <input id="ticker_search_input" class="form-control mr-sm-2" type="search" placeholder="" aria-label="Search">#}
+                    {{ search_ticker_form.ticker|add_class:'form-control mr-sm-2' }}
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                </form>
+            </div>
+        </nav>
+        {% if messages %}
+            <div class="container pt-4">
+                {% for message in messages %}
+                    <p class="alert {{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block body %}{% endblock %}
+        <script src="{% static 'finance/jquery-3.6.0.min.js' %}"></script>
+        <script src="{% static 'finance/popper.min.js' %}"></script>
+        <script src="{% static 'finance/bootstrap-4/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'finance/chart.min.js' %}"></script>
+        <script src="{% static 'home/finance_base.js' %}"></script>
+        {% block script %}{% endblock %}
+    </body>
+</html>
