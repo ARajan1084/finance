@@ -7,7 +7,7 @@ from django.contrib import messages
 from home.forms import SearchTickerForm
 import json
 import pandas as pd
-from ta import volatility
+from ta import volatility, trend
 
 
 def home(request):
@@ -33,21 +33,26 @@ def stock_info(request, ticker):
 
     time_x = []
     stock_price_y = []
+    sma_50 = []
+    sma_200 = []
+    bollinger_hband = []
+    bollinger_lband = []
     for entry in queryset:
         time_x.append(str(entry.date.strftime("%m/%d/%Y")))
         stock_price_y.append(entry.close)
+        sma_50.append(entry.sma_50)
+        sma_200.append(entry.sma_200)
+        bollinger_hband.append(entry.bband_h)
+        bollinger_lband.append(entry.bband_l)
 
-    df = pd.DataFrame(list(queryset.values()))
-    print(df)
-    ta_bbands = volatility.BollingerBands(close=df["adj_close"],
-                                          window=20,
-                                          window_dev=2)
     return render(request, 'trader/stock_info.html', context={'active': 'trader',
                                                               'ticker_info': ticker_info,
                                                               'time_x': json.dumps(time_x),
                                                               'stock_price_y': json.dumps(stock_price_y),
-                                                              'bollinger_hband': json.dumps(ta_bbands.bollinger_hband().tolist()),
-                                                              'bollinger_lband': json.dumps(ta_bbands.bollinger_lband().tolist()),
+                                                              'bollinger_hband': json.dumps(bollinger_hband),
+                                                              'bollinger_lband': json.dumps(bollinger_lband),
+                                                              'sma_50': json.dumps(sma_50),
+                                                              'sma_200': json.dumps(sma_200),
                                                               'search_ticker_form': search_ticker_form})
 
 

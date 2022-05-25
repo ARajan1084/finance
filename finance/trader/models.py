@@ -8,6 +8,10 @@ class DailyStockMarketData(models.Model):
     close = models.FloatField(null=True)
     adj_close = models.FloatField(null=True)
     volume = models.FloatField(null=True)
+    sma_50 = models.FloatField(null=True)
+    sma_200 = models.FloatField(null=True)
+    bband_h = models.FloatField(null=True)
+    bband_l = models.FloatField(null=True)
 
     class Meta:
         db_table = 'daily_stock_market_data'
