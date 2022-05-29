@@ -14,5 +14,7 @@ requests==2.27.1
 six==1.16.0
 sqlparse==0.4.2
 ta==0.10.1
+tdqm==0.0.1
+tqdm==4.64.0
 urllib3==1.26.9
 yfinance==0.1.70

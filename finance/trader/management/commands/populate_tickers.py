@@ -11,9 +11,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            df = pd.read_csv('trader/management/commands/sp500.csv')
+            df = pd.read_csv('trader/management/commands/ticker_info.csv')
             for index, row in df.iterrows():
-                ticker = TickerInfo(ticker=row['Symbol'], security=row['Security'], sector=row['GICS Sector'])
+                ticker = TickerInfo(ticker=row['Symbol'], company=row['Company Name'], industry=row['Industry'])
                 ticker.save()
             self.stdout.write(self.style.SUCCESS('Successfully populated ticker info table'))
         except Exception as e:

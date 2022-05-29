@@ -4,13 +4,13 @@
 {% block body %}
     <div class="container pt-5">
         <h1>{{ ticker_info.ticker }}</h1>
-        <h5>{{ ticker_info.security }}</h5>
+        <h5>{{ ticker_info.company }}</h5>
         <div class="d-flex justify-content-center">
-            <button class="btn btn-outline-primary m-1">1 Day</button>
-            <button class="btn btn-outline-primary m-1">7 Days</button>
-            <button class="btn btn-outline-primary m-1">1 Month</button>
-            <button class="btn btn-outline-primary m-1">1 Year</button>
-            <button class="btn btn-outline-primary m-1">10 Years</button>
+            <button onclick="location.href='{% url 'stock_info' ticker_info.ticker 1 %}'" class="btn {% if num_days == 1 %} btn-primary {% else %} btn-outline-primary {% endif %} m-1">1 Day</button>
+            <button onclick="location.href='{% url 'stock_info' ticker_info.ticker 7 %}'" class="btn {% if num_days == 7 %} btn-primary {% else %} btn-outline-primary {% endif %} m-1">7 Days</button>
+            <button onclick="location.href='{% url 'stock_info' ticker_info.ticker 30 %}'" class="btn {% if num_days == 30 %} btn-primary {% else %} btn-outline-primary {% endif %} m-1">1 Month</button>
+            <button onclick="location.href='{% url 'stock_info' ticker_info.ticker 180 %}'" class="btn {% if num_days == 180 %} btn-primary {% else %} btn-outline-primary {% endif %} m-1">6 Months</button>
+            <button onclick="location.href='{% url 'stock_info' ticker_info.ticker 365 %}'" class="btn {% if num_days == 365 %} btn-primary {% else %} btn-outline-primary {% endif %} m-1">1 Year</button>
         </div>
         <div class="row"></div>
         <canvas id="myChart" width="400" height="200" class="pt-4"></canvas>
@@ -33,7 +33,7 @@
                 labels: {{ time_x|safe }},
                 datasets: [
                     {
-                        data: {{ stock_price_y }},
+                        data: {{ close }},
                         label: "Close",
                         borderColor: "#1C6E8C",
                         backgroundColor: "#1C6E8C",
@@ -56,15 +56,15 @@
                     {
                         data: {{ sma_50 }},
                         label: "50D SMA",
-                        borderColor: "#f3bcb7",
-                        backgroundColor: "#f3bcb7",
+                        borderColor: "#FFDA22",
+                        backgroundColor: "#FFDA22",
                         fill: false
                     },
                     {
                         data: {{ sma_200 }},
                         label: "200D SMA",
-                        borderColor: "#FFDA22",
-                        backgroundColor: "#FFDA22",
+                        borderColor: "#f3bcb7",
+                        backgroundColor: "#f3bcb7",
                         fill: false
                     }]
             },
