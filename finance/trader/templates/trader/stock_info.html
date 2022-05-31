@@ -13,21 +13,22 @@
             <button onclick="location.href='{% url 'stock_info' ticker_info.ticker 365 %}'" class="btn {% if num_days == 365 %} btn-primary {% else %} btn-outline-primary {% endif %} m-1">1 Year</button>
         </div>
         <div class="row"></div>
-        <canvas id="myChart" width="400" height="200" class="pt-4"></canvas>
-        <div id="example"></div>
+        <canvas id="stockPriceChart" width="400" height="180" class="pt-4"></canvas>
+        <canvas id="rsiChart" width="400" height="100"></canvas>
     </div>
 {% endblock %}
 
 {% block script %}
-    <script>
-        const ctx = document.getElementById('myChart').getContext('2d');
+    <script type="module">
+        const stockPriceChart = document.getElementById('stockPriceChart').getContext('2d');
+        const rsiChart = document.getElementById('rsiChart').getContext('2d');
 
         // #DCEDFF
         // #2D3319
         // #1C6E8C
         // #F0A7A0
         // #FFDA22
-        new Chart(ctx, {
+        new Chart(stockPriceChart, {
             type: 'line',
             data: {
                 labels: {{ time_x|safe }},
@@ -69,11 +70,54 @@
                     }]
             },
             options: {
-                title: {
-                    display: true,
-                    text: 'World population per region (in millions)'
-                },
             }
         });
+
+        new Chart(rsiChart, {
+            type: 'line',
+            data: {
+                labels: {{ time_x|safe }},
+                datasets: [
+                    {
+                        data: {{ rsi }},
+                        label: 'RSI',
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    x: {
+                        ticks: {
+                            display: true //this will remove only the label
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            suggestedMin: 0
+                        }
+                    }
+                },
+                plugins: {
+                    annotation: {
+                        annotations: [
+                            {
+                                type: 'line',
+                                yMin: 70,
+                                yMax: 70,
+                                borderColor: '#e72222',
+                                borderWidth: 2
+                            },
+                            {
+                                type: 'line',
+                                yMin: 30,
+                                yMax: 30,
+                                borderColor: '#00af02',
+                                borderWidth: 2
+                            }
+                        ]
+                    }
+                }
+            }
+        })
     </script>
 {% endblock %}

@@ -43,10 +43,14 @@
             </div>
         {% endif %}
         {% block body %}{% endblock %}
+        <div class="row pt-5 pb-5"></div>
         <script src="{% static 'finance/jquery-3.6.0.min.js' %}"></script>
         <script src="{% static 'finance/popper.min.js' %}"></script>
         <script src="{% static 'finance/bootstrap-4/js/bootstrap.min.js' %}"></script>
-        <script src="{% static 'finance/chart.min.js' %}"></script>
+        <script src="{% static 'finance/chartjs/chart.min.js' %}"></script>
+        <script src="{% static 'finance/chartjs/chartjs-plugin-annotation.min.js' %}"></script>
+        <script src="{% static 'finance/chartjs/chartjs-chart-financial.js' %}"></script>
+        <script src="{% static 'finance/chartjs/chartjs-adapter-date-fns.bundle.min.js' %}"></script>
         <script src="{% static 'home/finance_base.js' %}"></script>
         {% block script %}{% endblock %}
     </body>

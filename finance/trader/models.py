@@ -1,10 +1,11 @@
 from django.db import models
 
 
-class DailyTechnicalAnalysis(models.Model):
+class DailyTASignal(models.Model):
     ticker = models.CharField(unique=False, max_length=6, primary_key=False)
     date = models.DateField(unique=False)
-    category = models.CharField(unique=False, null=False, max_length=15)
+    description = models.CharField(unique=False, null=False, max_length=15)
+    signal = models.CharField(unique=False, null=False, max_length=5)
 
     class Meta:
         db_table = 'daily_technical_analysis'
@@ -23,6 +24,7 @@ class DailyStockMarketData(models.Model):
     sma_200 = models.FloatField(null=True)
     bband_h = models.FloatField(null=True)
     bband_l = models.FloatField(null=True)
+    rsi = models.FloatField(null=True)
 
     class Meta:
         db_table = 'daily_stock_market_data'

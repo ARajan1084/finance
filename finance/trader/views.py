@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.db.models import F
-from .models import DailyStockMarketData, TickerInfo, DailyTechnicalAnalysis
+from .models import DailyStockMarketData, TickerInfo, DailyTASignal
 from datetime import datetime, date, timedelta
 from django.http import JsonResponse
 from django.core import serializers
@@ -35,11 +35,11 @@ def home(request):
             messages.error(request, "Ticker is invalid.")
 
     golden_crosses = [TickerInfo.objects.get(ticker=entry.ticker)
-                      for entry in list(DailyTechnicalAnalysis.objects.all().filter(date__gte=datetime.now() - timedelta(3),
-                                                                                                 category='golden_cross').only('ticker'))]
+                      for entry in list(DailyTASignal.objects.all().filter(date__gte=datetime.now() - timedelta(5),
+                                                                           description='golden_cross').only('ticker'))]
     death_crosses = [TickerInfo.objects.get(ticker=entry.ticker)
-                     for entry in list(DailyTechnicalAnalysis.objects.all().filter(date__gte=datetime.now() - timedelta(3),
-                                                                                                category='death_cross').only('ticker'))]
+                     for entry in list(DailyTASignal.objects.all().filter(date__gte=datetime.now() - timedelta(5),
+                                                                          description='death_cross').only('ticker'))]
 
     search_ticker_form = SearchTickerForm()
     return render(request, 'trader/home.html', context={'active': 'trader',
@@ -62,24 +62,33 @@ def stock_info(request, ticker, num_days):
     sma_200 = []
     bollinger_hband = []
     bollinger_lband = []
+    rsi = []
+
     for entry in queryset:
         time_x.append(str(entry.date.strftime("%m/%d/%Y")))
-        close.append(entry.close)
         open.append(entry.open)
+        high.append(entry.high)
+        low.append(entry.low)
+        close.append(entry.close)
         sma_50.append(entry.sma_50)
         sma_200.append(entry.sma_200)
         bollinger_hband.append(entry.bband_h)
         bollinger_lband.append(entry.bband_l)
+        rsi.append(entry.rsi)
 
     return render(request, 'trader/stock_info.html', context={'active': 'trader',
                                                               'num_days': num_days,
                                                               'ticker_info': ticker_info,
                                                               'time_x': json.dumps(time_x),
+                                                              'open': json.dumps(open),
+                                                              'high': json.dumps(high),
+                                                              'low': json.dumps(low),
                                                               'close': json.dumps(close),
                                                               'bollinger_hband': json.dumps(bollinger_hband),
                                                               'bollinger_lband': json.dumps(bollinger_lband),
                                                               'sma_50': json.dumps(sma_50),
                                                               'sma_200': json.dumps(sma_200),
+                                                              'rsi': json.dumps(rsi),
                                                               'search_ticker_form': search_ticker_form})
 
 

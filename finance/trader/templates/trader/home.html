@@ -11,12 +11,12 @@
                             <div class="card">
                                 <div class="card-body">
                                     <h4>{{ stock.ticker }}</h4>
-                                    <p>{{ stock.security}}</p>
+                                    <p>{{ stock.company}}</p>
                                     <button class="btn btn-outline-info" onclick="location.href='{% url 'stock_info' stock.ticker 180 %}'">Check it Out</button>
                                 </div>
                             </div>
                         </div>
-                    {% if forloop.counter|divisibleby:3 %}</div><div class="row">{% endif %}
+                    {% if forloop.counter|divisibleby:3 %}</div><div class="row pt-3">{% endif %}
                     {% if forloop.last %}</div>{% endif %}
                 {% endfor %}
         {% else %}
@@ -25,9 +25,20 @@
 
         <h2 class="pt-5">Death Crosses</h2>
         {% if death_crosses %}
-        {% for ticker in death_crosses %}
-            <a href="{% url 'stock_info' ticker 180 %}">{{ ticker }}</a><br>
-        {% endfor %}
+                {% for stock in death_crosses %}
+                    {% if forloop.first %}<div class="row">{% endif %}
+                        <div class="col-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>{{ stock.ticker }}</h4>
+                                    <p>{{ stock.company}}</p>
+                                    <button class="btn btn-outline-info" onclick="location.href='{% url 'stock_info' stock.ticker 180 %}'">Check it Out</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% if forloop.counter|divisibleby:3 %}</div><div class="row pt-3">{% endif %}
+                    {% if forloop.last %}</div>{% endif %}
+                {% endfor %}
         {% else %}
             <p class="alert alert-info">No death crosses observed</p>
         {% endif %}
