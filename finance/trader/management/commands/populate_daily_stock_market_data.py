@@ -4,7 +4,7 @@ from trader.models import TickerInfo, DailyStockMarketData
 from django.core.management.base import BaseCommand, CommandError
 from multiprocessing.pool import Pool
 import numpy as np
-from .trader_commands_functions import process_entries
+from trader.trader_commands_functions import process_entries
 import multiprocessing
 from tdqm_l import tqdm as tdqm
 
@@ -18,9 +18,9 @@ class Command(BaseCommand):
             tickers = []  # list of tickers
             for ticker in TickerInfo.objects.all():
                 tickers.append(ticker.ticker)
-            tickers_lists = np.array_split(tickers, 2)
+            tickers_lists = np.array_split(tickers, 8)
             for ticker_list in tickers_lists:
-                df = yf.download(tickers=ticker_list.tolist(), period='5y', interval='1d', group_by='ticker', threads=True)
+                df = yf.download(tickers=ticker_list.tolist(), period='16y', interval='1d', group_by='ticker', threads=True)
                 entries = self.parallelize_dataframe(df, process_entries, multiprocessing.cpu_count())
                 del df
                 print(len(entries), 'entries to create.')

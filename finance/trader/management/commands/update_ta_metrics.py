@@ -3,7 +3,7 @@ from trader.models import TickerInfo, DailyStockMarketData
 from django.core.management.base import BaseCommand, CommandError
 from multiprocessing.pool import Pool
 import numpy as np
-from .trader_commands_functions import fetch_1d_ta_metrics
+from trader.trader_commands_functions import fetch_1d_ta_metrics
 import multiprocessing
 from tdqm import tqdm as tdqm
 from django.db import connection

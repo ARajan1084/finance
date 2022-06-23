@@ -84,47 +84,70 @@ def process_entries(narray):
 
 
 def fetch_ta_signals(ticker_entries):
-    print('Looking for golden and death crosses...')
-    crosses = find_golden_and_death_crosses(ticker_entries)
-    print('Looking for bband signals...')
-    bband_signals = find_bband_signals()
-    print('Looking for rsi signals...')
-    rsi_signals = find_rsi_signals()
-    return crosses + bband_signals + rsi_signals
-
-
-def find_golden_and_death_crosses(ticker_entries):
+    print('Looking for TA signals...')
     signals = []
     for ticker, entries in tdqm(ticker_entries):
+        if entries is None:
+            continue
         for i in range(0, len(entries) - 1):
             window = entries[i:i+2]
             start = window[0]
             end = window[1]
             if start.sma_50 < start.sma_200 and end.sma_50 >= end.sma_200:
                 signals.append(DailyTASignal(ticker=ticker, date=end.date, description='golden_cross', signal='buy'))
-            if start.sma_50 > start.sma_200 and end.sma_50 <= end.sma_200:
+            elif start.sma_50 > start.sma_200 and end.sma_50 <= end.sma_200:
                 signals.append(DailyTASignal(ticker=ticker, date=end.date, description='death_cross', signal='sell'))
+            if start.close > start.bband_l and end.close < end.bband_l:
+                signals.append(DailyTASignal(ticker=ticker, date=end.date, description='bband_l_cross', signal='buy'))
+            elif start.close < start.bband_h and end.close > end.bband_h:
+                signals.append(DailyTASignal(ticker=ticker, date=end.date, description='bband_h_cross', signal='sell'))
+    print('Looking for RSI signals...')
+    signals += fetch_rsi_signals()
     return signals
 
 
-def find_bband_signals():
-    query_bband_l = DailyStockMarketData.objects.all().filter(close__lt=F('bband_l')).only('ticker', 'date')
-    query_bband_h = DailyStockMarketData.objects.all().filter(close__gt=F('bband_h')).only('ticker', 'date')
-    l_signals = [DailyTASignal(ticker=entry.ticker, date=entry.date, description='lt_bband_l', signal='buy') for entry in tdqm(query_bband_l)]
-    h_signals = [DailyTASignal(ticker=entry.ticker, date=entry.date, description='gt_bband_h', signal='sell') for entry in tdqm(query_bband_h)]
-    return l_signals + h_signals
+def fetch_rsi_signals():
+    signals = []
+    query_buy = DailyStockMarketData.objects.filter(rsi__lte=30)
+    query_sell = DailyStockMarketData.objects.filter(rsi__gte=70)
+    for entry in tdqm(query_buy):
+        signals.append(DailyTASignal(ticker=entry.ticker, date=entry.date, description='rsi_lte_30', signal='buy'))
+    for entry in tdqm(query_sell):
+        signals.append(DailyTASignal(ticker=entry.ticker, date=entry.date, description='rsi_gte_70', signal='buy'))
 
 
-def find_rsi_signals():
-    query_rsi_b = DailyStockMarketData.objects.all().filter(rsi__lte=30).only('ticker', 'date')
-    query_rsi_s = DailyStockMarketData.objects.all().filter(rsi__gte=70).only('ticker', 'date')
-    b_signals = [DailyTASignal(ticker=entry.ticker, date=entry.date, description='rsi_lte_30', signal='buy') for entry in tdqm(query_rsi_b)]
-    s_signals = [DailyTASignal(ticker=entry.ticker, date=entry.date, description='rsi_gte_70', signal='sell') for entry in tdqm(query_rsi_s)]
-    return b_signals + s_signals
+def fetch_all_ticker_entries(only):
+    query = DailyStockMarketData.objects.all().only(*only).order_by('ticker', 'date')
+    return query_to_dict(query)
 
 
-def fetch_all_ticker_entries():
-    query = DailyStockMarketData.objects.all().only('ticker', 'date', 'sma_50', 'sma_200').order_by('ticker', 'date')
+def fetch_all_tickers():
+    query = TickerInfo.objects.all()
+    tickers = []
+    for entry in query:
+        tickers.append(entry.ticker)
+    return tickers
+
+
+def fetch_ticker_entries(only, tickers):
+    query = DailyStockMarketData.objects.filter(ticker__in=tickers).only(*only).order_by('ticker', 'date')
+    keys = [ticker for ticker in tickers]
+    ticker_entries = dict.fromkeys(keys)
+
+    for entry in tdqm(query):
+        if ticker_entries[entry.ticker] is not None:
+            ticker_entries[entry.ticker].append(entry)
+        else:
+            ticker_entries[entry.ticker] = [entry]
+    return ticker_entries
+
+
+def fetch_ticker_entries_by_date(only, start_date, end_date):
+    query = DailyStockMarketData.objects.filter(date__gte=start_date, date__lt=end_date).only(*only)
+    return query_to_dict(query)
+
+
+def query_to_dict(query):
     keys = [entry.ticker for entry in query]
     ticker_entries = dict.fromkeys(keys)
     for entry in tdqm(query):
@@ -135,8 +158,8 @@ def fetch_all_ticker_entries():
     return ticker_entries
 
 
-def fetch_ticker_entries_3d():
-    query = DailyStockMarketData.objects.all().filter(date__gte=datetime.now() - timedelta(10)).only('date', 'sma_50', 'sma_200').order_by('ticker', 'date')
+def fetch_ticker_entries_3d(only):
+    query = DailyStockMarketData.objects.all().filter(date__gte=datetime.now() - timedelta(10)).only(*only).order_by('ticker', 'date')
     ticker_entries = {}
     for entry in query:
         if entry.ticker in ticker_entries:

@@ -3,7 +3,7 @@ from trader.models import TickerInfo, DailyStockMarketData
 from django.core.management.base import BaseCommand, CommandError
 from multiprocessing.pool import Pool
 import numpy as np
-from .trader_commands_functions import generate_ta_metric
+from trader.trader_commands_functions import generate_ta_metric
 import multiprocessing
 from tdqm_l import tqdm as tdqm
 from django.db import connection
@@ -19,7 +19,7 @@ class Command(BaseCommand):
             for ticker in TickerInfo.objects.all():
                 tickers.append(ticker.ticker)
 
-            tickers_lists = np.array_split(tickers, 10)
+            tickers_lists = np.array_split(tickers, 25)
             multiprocessing.set_start_method('fork')
             for tickers_list in tickers_lists:
                 with Pool(multiprocessing.cpu_count()) as pool:
