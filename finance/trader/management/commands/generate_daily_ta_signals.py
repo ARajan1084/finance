@@ -4,7 +4,7 @@ from trader.models import TickerInfo, DailyTASignal
 from django.core.management.base import BaseCommand, CommandError
 from multiprocessing import Pool
 from .trader_commands_functions import fetch_all_ticker_entries, fetch_ta_signals
-from tdqm import tqdm as tdqm
+from tdqm_l import tqdm as tdqm
 import numpy as np
 
 

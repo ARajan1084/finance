@@ -6,7 +6,7 @@ from multiprocessing.pool import Pool
 import numpy as np
 from .trader_commands_functions import process_entries
 import multiprocessing
-from tdqm import tqdm as tdqm
+from tdqm_l import tqdm as tdqm
 
 
 class Command(BaseCommand):

@@ -1,12 +1,10 @@
-from django.db import connection
-from tdqm import tqdm as tdqm
 from trader.models import DailyStockMarketData, DailyTASignal, TickerInfo
 from datetime import datetime, timedelta
 import pandas as pd
 from ta import trend, volatility, momentum
 from django.db import connection
 from django.db.models import F
-from tdqm import tqdm
+from tdqm_l import tqdm as tdqm
 
 
 def fetch_1d_ta_metrics(ticker):
