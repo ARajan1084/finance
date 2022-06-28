@@ -1,6 +1,7 @@
 import datetime
 import math
 from colorama import Fore, Style
+from tdqm_l import tqdm
 
 import pandas as pd
 from queue import PriorityQueue, Queue
@@ -11,17 +12,24 @@ from trader.models import BackTest, DailyStockMarketData, BackTestTransaction, D
 
 class Simulation:
     def __init__(self, start: datetime.date, end: datetime.date, test_name: str, init_investment: int,
-                 interval_length: int, price_cap: int, buys_per_day: int, imm_sc_profit: float, imm_sc_loss: float):
+                 interval_length: int, price_min: float, price_cap: float, buys_per_day: int, imm_sc_profit: float, imm_sc_loss: float,
+                 coefs: dict, buy_threshold: float, sell_threshold: float):
         self.start = start
         self.end = end
         self.net_worth_tracker = {}
         self.test = BackTest(name=test_name, start=start, end=end)
+        self.price_min = price_min
         self.price_cap = price_cap
         self.buys_per_day = buys_per_day
 
         self.imm_sc_profit_f = 1 + imm_sc_profit
         self.imm_sc_loss_f = 1 - imm_sc_loss
 
+        self.signal_list = ['bband_l_cross', 'bband_h_cross', 'rsi_lte_30', 'rsi_gte_70', 'golden_cross', 'death_cross']
+        self.__process_coefficients(coefs)
+
+        self.buy_threshold = buy_threshold
+        self.sell_threshold = sell_threshold
         self.buy_transaction_queue = PriorityQueue()
         self.sell_transaction_queue = Queue()
         self.portfolio = {}
@@ -32,11 +40,15 @@ class Simulation:
 
         self.ticker_entries = {}
 
+    def __process_coefficients(self, coefs:dict):
+        self.coefs = {}
+        for signal in self.signal_list:
+            self.coefs.update({signal: coefs.get(signal, 0.0)})
+
     def run_simulation(self):
         self.test.save()
-        print('started with', self.bank, 'dollars')
 
-        for date in (self.start + datetime.timedelta(n) for n in range((self.end - self.start).days)):
+        for date in (self.start + datetime.timedelta(n) for n in tqdm(range((self.end - self.start).days))):
             if date in self.date_intervals:
                 self.__repopulate_ticker_entries(date)
 
@@ -52,28 +64,23 @@ class Simulation:
             self.process_buy_queue(date)
 
             # determine buys for tomorrow based on TA today
-            self.get_buy_signals(date)
+            self.process_buy_signals(date)
             # determine sells for tomorrow based on TA today
-            self.get_sell_signals(date)
-            net_w = self.calculate_net_worth(date)
-            self.net_worth_tracker.update({date: net_w})
-
-            if net_w > self.init_invest:
-                print(f'{Fore.GREEN}{date}: ${net_w}{Style.RESET_ALL}')
-            else:
-                print(f'{Fore.RED}{date}: ${net_w}{Style.RESET_ALL}')
+            self.process_sell_signals(date)
+            # net_w = self.calculate_net_worth(date)
+            # self.net_worth_tracker.update({date: net_w})
+            #
+            # if net_w > self.init_invest:
+            #     print(f'{Fore.GREEN}{date}: ${net_w}{Style.RESET_ALL}')
+            # else:
+            #     print(f'{Fore.RED}{date}: ${net_w}{Style.RESET_ALL}')
 
         query = DailyStockMarketData.objects.filter(date__gte=self.end).order_by('date')
         sell_all_date = query[0].date
         for ticker in self.portfolio.keys():
             self.sell_transaction_queue.put(ticker)
         self.process_sell_queue(sell_all_date)
-        self.net_worth_tracker.update({self.end: self.bank})
-
-        df = pd.DataFrame(self.net_worth_tracker, index=self.net_worth_tracker.keys())
-        df.to_csv('simulation_net_worth_data.csv')
-
-        print('ended with', self.bank, 'dollars')
+        # self.net_worth_tracker.update({self.end: self.bank})
 
     def immediate_sell_conditions(self, date):
         # sell if +/- 10% of initial buy
@@ -89,19 +96,31 @@ class Simulation:
                         # or date - query_trans[0].date >= timedelta(7):
                     self.sell_transaction_queue.put(ticker)
 
-    def get_buy_signals(self, date):
+    def process_buy_signals(self, date):
         if self.bank > 0:  # if we have money
-            query_buy_ta_signals = DailyTASignal.objects.filter(date=date, signal='buy', description='bband_l_cross')
-            for signal in query_buy_ta_signals:
-                entry = self.fetch_entry(date, signal.ticker)
-                if entry.close <= self.price_cap:
-                    self.buy_transaction_queue.put(signal.ticker, entry.volume)  # buy this the next day when the market opens
+            query_buy_ta_signals = DailyTASignal.objects.filter(date=date, signal='buy')
+            signal_processing = self.__process_signal_query(query_buy_ta_signals)
+            for ticker, coef_sum in signal_processing.items():
+                if coef_sum >= self.buy_threshold:
+                    entry = self.fetch_entry(date, ticker)
+                    if self.price_cap >= entry.close >= self.price_min:
+                        self.buy_transaction_queue.put(ticker, entry.volume)  # buy this the next day when the market opens
 
-    def get_sell_signals(self, date):
-        query_sell_ta_signals = DailyTASignal.objects.filter(date=date, signal='sell', description__in=['bband_h_cross', 'death_cross'])
-        for signal in query_sell_ta_signals:
-            if signal.ticker in self.portfolio:
-                self.sell_transaction_queue.put(signal.ticker)  # sell this the next day when the market opens
+    def process_sell_signals(self, date):
+        query_sell_ta_signals = DailyTASignal.objects.filter(date=date, signal='sell')
+        signal_processing = self.__process_signal_query(query_sell_ta_signals)
+        for ticker, coef_sum in signal_processing.items():
+            if coef_sum >= self.sell_threshold and ticker in self.portfolio:
+                self.sell_transaction_queue.put(ticker)  # sell this the next day when the market opens
+
+    def __process_signal_query(self, query_signals):
+        signal_processing = {}
+        for signal in query_signals:
+            if signal.ticker in signal_processing:
+                signal_processing[signal.ticker] += self.coefs[signal.description]
+            else:
+                signal_processing.update({signal.ticker: self.coefs[signal.description]})
+        return signal_processing
 
     def process_buy_queue(self, date):
         i = 0
@@ -123,6 +142,7 @@ class Simulation:
                 continue
             if self.bank - trans.price_per_share > 0:  # if we have money
                 shares = min(int(self.bank / trans.price_per_share), shares)
+                trans.shares = shares
                 trans.save()
                 self.bank -= shares * trans.price_per_share
                 if ticker in self.portfolio:
@@ -171,6 +191,8 @@ class Simulation:
     def sigmoid(self, x):
         return 1 / (1 + math.exp(-x))
 
+    def clear_entries(self):
+        del self.ticker_entries
 
     def __generate_date_intervals(self, interval_length):
         date_intervals = []
@@ -186,4 +208,4 @@ class Simulation:
             end = self.end
         else:
             end = self.date_intervals[start_i + 1]
-        self.ticker_entries = fetch_ticker_entries_by_date(['date', 'ticker', 'open', 'close'], start, end)
+        self.ticker_entries = fetch_ticker_entries_by_date(['date', 'ticker', 'open', 'close'], start, end + datetime.timedelta(1))

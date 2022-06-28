@@ -5,7 +5,7 @@ from multiprocessing.pool import Pool
 import numpy as np
 from trader.trader_commands_functions import fetch_1d_ta_metrics
 import multiprocessing
-from tdqm import tqdm as tdqm
+from tdqm_l import tqdm as tdqm
 from django.db import connection
 
 

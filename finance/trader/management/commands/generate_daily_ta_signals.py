@@ -3,6 +3,7 @@ from trader.models import DailyTASignal
 from django.core.management.base import BaseCommand, CommandError
 from trader.trader_commands_functions import fetch_all_tickers, fetch_ticker_entries, fetch_ta_signals
 import numpy as np
+from colorama import Fore, Style
 
 
 class Command(BaseCommand):
@@ -14,7 +15,8 @@ class Command(BaseCommand):
             print('Fetching all entries...')
             tickers = fetch_all_tickers()
             tickers_lists = np.array_split(tickers, 5)
-            for ticker_list in tickers_lists:
+            for i, ticker_list in zip(range(1, len(tickers_lists) + 1), tickers_lists):
+                print(f'{Fore.YELLOW}iteration: {i}/{len(tickers_lists)}{Style.RESET_ALL}')
                 ticker_entries = fetch_ticker_entries(['ticker', 'date', 'sma_50', 'sma_200', 'close', 'bband_h', 'bband_l', 'rsi'], ticker_list)
                 ticker_entries = list(ticker_entries.items())
 

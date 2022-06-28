@@ -19,7 +19,7 @@ class Command(BaseCommand):
             for ticker in TickerInfo.objects.all():
                 tickers.append(ticker.ticker)
 
-            tickers_lists = np.array_split(tickers, 25)
+            tickers_lists = np.array_split(tickers, 16)
             multiprocessing.set_start_method('fork')
             for tickers_list in tickers_lists:
                 with Pool(multiprocessing.cpu_count()) as pool:

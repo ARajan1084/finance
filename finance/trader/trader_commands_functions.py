@@ -113,7 +113,8 @@ def fetch_rsi_signals():
     for entry in tdqm(query_buy):
         signals.append(DailyTASignal(ticker=entry.ticker, date=entry.date, description='rsi_lte_30', signal='buy'))
     for entry in tdqm(query_sell):
-        signals.append(DailyTASignal(ticker=entry.ticker, date=entry.date, description='rsi_gte_70', signal='buy'))
+        signals.append(DailyTASignal(ticker=entry.ticker, date=entry.date, description='rsi_gte_70', signal='sell'))
+    return signals
 
 
 def fetch_all_ticker_entries(only):
@@ -150,7 +151,7 @@ def fetch_ticker_entries_by_date(only, start_date, end_date):
 def query_to_dict(query):
     keys = [entry.ticker for entry in query]
     ticker_entries = dict.fromkeys(keys)
-    for entry in tdqm(query):
+    for entry in query:
         if ticker_entries[entry.ticker] is not None:
             ticker_entries[entry.ticker].append(entry)
         else:

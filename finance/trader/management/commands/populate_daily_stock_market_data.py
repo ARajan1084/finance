@@ -18,7 +18,7 @@ class Command(BaseCommand):
             tickers = []  # list of tickers
             for ticker in TickerInfo.objects.all():
                 tickers.append(ticker.ticker)
-            tickers_lists = np.array_split(tickers, 8)
+            tickers_lists = np.array_split(tickers, 6)
             for ticker_list in tickers_lists:
                 df = yf.download(tickers=ticker_list.tolist(), period='16y', interval='1d', group_by='ticker', threads=True)
                 entries = self.parallelize_dataframe(df, process_entries, multiprocessing.cpu_count())

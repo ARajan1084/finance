@@ -1,14 +1,16 @@
 import uuid
+from django.utils import timezone
 
 from django.db import models
 
 
 class BackTest(models.Model):
     id = models.UUIDField(unique=True, primary_key=True, default=uuid.uuid4)
-    name = models.CharField(unique=False, max_length=50, null=False)
+    name = models.CharField(unique=False, max_length=100, null=False)
     start = models.DateField(unique=False)
     end = models.DateField(unique=False)
     description = models.CharField(unique=False, max_length=300, null=True)
+    created = models.DateTimeField(unique=True, default=timezone.now)
 
     class Meta:
         db_table = 'back_tests'
@@ -22,6 +24,25 @@ class BackTestTransaction(models.Model):
     ticker = models.CharField(unique=False, max_length=6, null=False)
     shares = models.IntegerField(null=False)
     price_per_share = models.FloatField(null=False)
+    total = models.FloatField(null=True)
+    profit = models.FloatField(null=True)
+
+    def save(self, *args, **kwargs):
+        if self.action == 'buy':
+            self.total = self.shares * self.price_per_share * -1
+        elif self.action == 'sell':
+            self.total = self.shares * self.price_per_share
+            query = BackTestTransaction.objects.filter(ticker=self.ticker, action='sell').order_by('-date')
+            if len(query) > 0:
+                last_sell_date = query[0].date
+                query = BackTestTransaction.objects.filter(ticker=self.ticker, action='buy', date__gte=last_sell_date)
+            else:
+                query = BackTestTransaction.objects.filter(ticker=self.ticker, action='buy')
+            sum = 0.0
+            for entry in query:
+                sum += abs(entry.total)
+            self.profit = self.total - sum
+        super(BackTestTransaction, self).save(*args, **kwargs)
 
     class Meta:
         db_table = 'back_test_transactions'
