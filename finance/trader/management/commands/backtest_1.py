@@ -44,8 +44,8 @@ class Command(BaseCommand):
                                         for rsi_lte_30 in np.arange(signal_min, signal_max, signal_inc):
                                             for buy_threshold in np.arange(1.0, 3.0, 1.0):
                                                 for sell_threshold in np.arange(0.0, 3.0, 1.0):
-                                                    if bband_l_cross + golden_cross + rsi_gte_70 < buy_threshold or \
-                                                            bband_h_cross + death_cross + rsi_lte_30 < sell_threshold:
+                                                    if bband_l_cross + golden_cross + rsi_lte_30 < buy_threshold or \
+                                                            bband_h_cross + death_cross + rsi_gte_70 < sell_threshold:
                                                         continue
                                                     name = 'iscp_' + f"{imm_sc_profit:.9}" + '_' + \
                                                            'iscl_' + f"{imm_sc_loss:.9}" + '_' + \
@@ -71,7 +71,7 @@ class Command(BaseCommand):
                                                                                       'bband_l_cross': bband_l_cross,
                                                                                       'bband_h_cross': bband_h_cross,
                                                                                       'golden_cross': golden_cross,
-                                                                                      'death_cross': 1.0,
+                                                                                      'death_cross': death_cross,
                                                                                       'rsi_lte_30': rsi_lte_30,
                                                                                       'rsi_gte_70': rsi_gte_70,
                                                                                   },

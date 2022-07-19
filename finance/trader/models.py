@@ -4,6 +4,11 @@ from django.utils import timezone
 from django.db import models
 
 
+class KnownBuy(models.Model):
+    date = models.DateField(unique=False, null=False)
+    ticker = models.CharField(max_length=6, unique=False, null=False)
+
+
 class BackTest(models.Model):
     id = models.UUIDField(unique=True, primary_key=True, default=uuid.uuid4)
     name = models.CharField(unique=False, max_length=100, null=False)
@@ -46,6 +51,10 @@ class BackTestTransaction(models.Model):
 
     class Meta:
         db_table = 'back_test_transactions'
+        indexes = [
+            models.Index(fields=['date']),
+            models.Index(fields=['ticker'])
+        ]
 
 
 class Transaction(models.Model):
